@@ -41,6 +41,7 @@ shape = SubResource("RectangleShape2D_mu4d0")
 
 [node name="Hole" type="Area2D" parent="."]
 script = ExtResource("1_8sai8")
+next_level_path = "res://level_2.tscn"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hole"]
 position = Vector2(1112, 344.047)
