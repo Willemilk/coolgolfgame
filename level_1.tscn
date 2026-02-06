@@ -1,12 +1,18 @@
-[gd_scene load_steps=7 format=3 uid="uid://b2lj54yjoamnr"]
+[gd_scene load_steps=9 format=3 uid="uid://b2lj54yjoamnr"]
 
 [ext_resource type="Script" path="res://hole.gd" id="1_8sai8"]
 [ext_resource type="Texture2D" uid="uid://ctee6c7hm4hnc" path="res://Kyrise's 16x16 RPG Icon Pack - V1.3/icons/32x32/candy_02a.png" id="2_3p5cf"]
 [ext_resource type="PackedScene" uid="uid://c7fjvanglsppb" path="res://ball.tscn" id="3_ov0ds"]
 [ext_resource type="TileSet" uid="uid://doijmg5i5mq80" path="res://MyTileSet.tres" id="4_yuj10"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_i6bdp"]
+size = Vector2(18, 466)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_poqr1"]
 size = Vector2(1144.75, 264)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mu4d0"]
+size = Vector2(1154, 21)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_oubuo"]
 size = Vector2(48, 48.0938)
@@ -15,9 +21,21 @@ size = Vector2(48, 48.0938)
 
 [node name="Terrain" type="StaticBody2D" parent="."]
 
+[node name="RightWall" type="CollisionShape2D" parent="Terrain"]
+position = Vector2(1160, 232)
+shape = SubResource("RectangleShape2D_i6bdp")
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain"]
 position = Vector2(572.375, 516)
 shape = SubResource("RectangleShape2D_poqr1")
+
+[node name="LeftWall" type="CollisionShape2D" parent="Terrain"]
+position = Vector2(-8, 231)
+shape = SubResource("RectangleShape2D_i6bdp")
+
+[node name="UpperWall" type="CollisionShape2D" parent="Terrain"]
+position = Vector2(575, -5.5)
+shape = SubResource("RectangleShape2D_mu4d0")
 
 [node name="Obstakels" type="StaticBody2D" parent="."]
 

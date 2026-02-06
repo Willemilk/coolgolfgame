@@ -21,10 +21,11 @@ func _ready():
 	shot_indicator.width = 3.0
 	shot_indicator.top_level = true
 	ball_sprite = $Ball
-	ball_sprite.scale = Vector2(0.05, 0.05)
+	ball_sprite.scale = Vector2(0.03, 0.03)
 	linear_damp = 5.0
 	angular_damp = 5.0
 	gravity_scale = 1.0
+	continuous_cd = RigidBody2D.CCD_MODE_CAST_SHAPE
 
 
 func _physics_process(delta):
@@ -44,7 +45,7 @@ func _physics_process(delta):
 		linear_velocity = Vector2.ZERO
 		angular_velocity = 0.0
 		spawn_land_particles()
-		squash_ball(Vector2(0.065, 0.035), Vector2(0.05, 0.05))
+		squash_ball(Vector2(0.039, 0.021), Vector2(0.03, 0.03))
 
 
 func _input(event):
@@ -71,8 +72,8 @@ func _input(event):
 						if shot_vector.length() > 5.0:
 							apply_impulse(shot_vector * shot_power_multiplier)
 							spawn_shoot_particles(shot_vector)
-							squash_ball(Vector2(0.03, 0.07), Vector2(0.05, 0.05))
-							screen_shake(3.0, 0.15)
+							squash_ball(Vector2(0.018, 0.042), Vector2(0.03, 0.03))
+							screen_shake(3.0)
 							hit_count += 1
 							emit_signal("hit_count_changed", hit_count)
 		elif event is InputEventMouseMotion:
@@ -98,7 +99,7 @@ func squash_ball(from_scale, to_scale):
 		tween.tween_property(ball_sprite, "scale", to_scale, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
 
 
-func screen_shake(intensity, duration):
+func screen_shake(intensity):
 	var camera = get_viewport().get_camera_2d()
 	if camera:
 		var tween = create_tween()

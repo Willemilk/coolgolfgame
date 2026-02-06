@@ -1,5 +1,7 @@
 extends Area2D
 
+@export var next_level_path: String = ""
+
 var base_position = Vector2()
 var time = 0.0
 var bob_height = 6.0
@@ -11,7 +13,8 @@ var sprite
 func _ready():
 	base_position = position
 	sprite = $Sprite2D
-	body_entered.connect(_on_body_entered)
+	if not body_entered.is_connected(_on_body_entered):
+		body_entered.connect(_on_body_entered)
 
 
 func _process(delta):
@@ -25,9 +28,13 @@ func _on_body_entered(body):
 		collected = true
 		body.linear_velocity = Vector2.ZERO
 		body.angular_velocity = 0.0
-		body.freeze = true
+		call_deferred("freeze_ball", body)
 		spawn_collect_particles()
 		play_collect_animation(body.hit_count)
+
+
+func freeze_ball(body):
+	body.freeze = true
 
 
 func spawn_collect_particles():
@@ -74,53 +81,88 @@ func play_collect_animation(shots):
 
 
 func show_level_complete(shots):
+	var canvas = CanvasLayer.new()
+	canvas.layer = 10
+
 	var overlay = ColorRect.new()
 	overlay.color = Color(0, 0, 0, 0)
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	var label = Label.new()
-	label.text = "Level Complete!\nShots: " + str(shots)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.set_anchors_preset(Control.PRESET_CENTER)
-	label.add_theme_font_size_override("font_size", 48)
-	label.add_theme_color_override("font_color", Color.WHITE)
-	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-	label.add_theme_constant_override("shadow_offset_x", 2)
-	label.add_theme_constant_override("shadow_offset_y", 2)
-	label.modulate.a = 0.0
-	label.scale = Vector2(0.5, 0.5)
-	label.pivot_offset = label.size / 2
+	var center = CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	var restart_label = Label.new()
-	restart_label.text = "Click anywhere to restart"
-	restart_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	restart_label.set_anchors_preset(Control.PRESET_CENTER)
-	restart_label.position.y = 60
-	restart_label.add_theme_font_size_override("font_size", 20)
-	restart_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
-	restart_label.modulate.a = 0.0
+	var container = VBoxContainer.new()
+	container.alignment = BoxContainer.ALIGNMENT_CENTER
+	container.add_theme_constant_override("separation", 20)
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	var canvas = CanvasLayer.new()
-	canvas.layer = 10
+	var title_label = Label.new()
+	title_label.text = "Level Complete!"
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.add_theme_font_size_override("font_size", 48)
+	title_label.add_theme_color_override("font_color", Color.WHITE)
+	title_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	title_label.add_theme_constant_override("shadow_offset_x", 2)
+	title_label.add_theme_constant_override("shadow_offset_y", 2)
+
+	var shots_label = Label.new()
+	shots_label.text = "Shots: " + str(shots)
+	shots_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	shots_label.add_theme_font_size_override("font_size", 28)
+	shots_label.add_theme_color_override("font_color", Color(1, 1, 0.6))
+
+	var button_container = HBoxContainer.new()
+	button_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	button_container.add_theme_constant_override("separation", 20)
+
+	var restart_button = Button.new()
+	restart_button.text = "Restart"
+	restart_button.add_theme_font_size_override("font_size", 22)
+	restart_button.custom_minimum_size = Vector2(150, 50)
+	restart_button.pressed.connect(_on_restart_pressed)
+
+	var next_button = Button.new()
+	next_button.text = "Next Level"
+	next_button.add_theme_font_size_override("font_size", 22)
+	next_button.custom_minimum_size = Vector2(150, 50)
+	next_button.pressed.connect(_on_next_level_pressed)
+
+	if next_level_path == "":
+		next_button.disabled = true
+		next_button.tooltip_text = "No more levels"
+
+	button_container.add_child(restart_button)
+	button_container.add_child(next_button)
+
+	container.add_child(title_label)
+	container.add_child(shots_label)
+	container.add_child(button_container)
+
+	center.add_child(container)
+	overlay.add_child(center)
 	canvas.add_child(overlay)
-	overlay.add_child(label)
-	overlay.add_child(restart_label)
-	get_tree().root.add_child(canvas)
+	get_tree().current_scene.add_child(canvas)
+
+	container.modulate.a = 0.0
+	container.scale = Vector2(0.5, 0.5)
+	container.pivot_offset = container.size / 2
 
 	var t = create_tween()
 	t.set_parallel(true)
 	t.tween_property(overlay, "color:a", 0.6, 0.5)
-	t.tween_property(label, "modulate:a", 1.0, 0.4).set_delay(0.2)
-	t.tween_property(label, "scale", Vector2(1.0, 1.0), 0.4).set_delay(0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	t.tween_property(restart_label, "modulate:a", 1.0, 0.3).set_delay(0.6)
+	t.tween_property(container, "modulate:a", 1.0, 0.4).set_delay(0.2)
+	t.tween_property(container, "scale", Vector2(1.0, 1.0), 0.4).set_delay(0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
 	await t.finished
 	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
-	overlay.gui_input.connect(_on_overlay_clicked)
 
 
-func _on_overlay_clicked(event):
-	if event is InputEventMouseButton and event.pressed:
-		get_tree().reload_current_scene()
+func _on_restart_pressed():
+	get_tree().reload_current_scene()
+
+
+func _on_next_level_pressed():
+	if next_level_path != "":
+		get_tree().change_scene_to_file(next_level_path)
