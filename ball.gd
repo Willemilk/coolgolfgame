@@ -171,7 +171,7 @@ func update_trajectory_preview(impulse: Vector2):
 
 	points.append(pos)
 
-	for i in range(90):
+	for i in range(150):
 		var old_pos = pos
 
 		vel *= damp_factor
