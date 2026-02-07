@@ -71,7 +71,7 @@ func _ready():
 	volume_slider.min_value = 0.0
 	volume_slider.max_value = 1.0
 	volume_slider.step = 0.05
-	volume_slider.value = 0.8
+	volume_slider.value = MusicManager.get_volume_normalized()
 	volume_slider.value_changed.connect(_on_volume_changed)
 	music_container.add_child(volume_slider)
 
@@ -107,4 +107,4 @@ func _on_quit_pressed():
 
 
 func _on_volume_changed(value):
-	pass
+	MusicManager.set_volume(value)

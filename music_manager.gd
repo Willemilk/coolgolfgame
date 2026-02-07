@@ -1,37 +1,40 @@
 extends Node
 
-var player
-var songs = []
+var songs = [
+	"res://music/lensko_cetus.mp3"
+]
 var current_song = 0
-var volume_db = 0.0
+var volume_linear = 0.8
+var player: AudioStreamPlayer
 
 
 func _ready():
-	var music_dir = DirAccess.open("res://music/")
-	if music_dir:
-		music_dir.list_dir_begin()
-		var file = music_dir.get_next()
-		while file != "":
-			if file.ends_with(".ogg") or file.ends_with(".mp3"):
-				songs.append("res://music/" + file)
-			file = music_dir.get_next()
+	player = AudioStreamPlayer.new()
+	player.bus = &"Master"
+	add_child(player)
+	player.finished.connect(_on_song_finished)
 
 	if songs.size() > 0:
 		songs.shuffle()
-		player = AudioStreamPlayer.new()
-		player.bus = "Master"
-		player.volume_db = volume_db
-		add_child(player)
-		player.finished.connect(_on_song_finished)
-		play_song()
+		call_deferred("play_song")
 
 
 func play_song():
-	if songs.size() == 0:
+	if songs.size() == 0 or current_song >= songs.size():
 		return
+
 	var stream = load(songs[current_song])
+	if stream == null:
+		push_warning("MusicManager: Could not load " + songs[current_song])
+		return
+
+	if stream is AudioStreamMP3:
+		stream.loop = false
+
 	player.stream = stream
+	player.volume_db = linear_to_db(volume_linear)
 	player.play()
+	print("MusicManager: Now playing " + songs[current_song] + " at " + str(player.volume_db) + " dB")
 
 
 func _on_song_finished():
@@ -43,10 +46,10 @@ func _on_song_finished():
 
 
 func set_volume(value):
-	volume_db = lerp(-40.0, 0.0, value)
+	volume_linear = clampf(value, 0.0, 1.0)
 	if player:
-		player.volume_db = volume_db
+		player.volume_db = linear_to_db(volume_linear)
 
 
 func get_volume_normalized():
-	return inverse_lerp(-40.0, 0.0, volume_db)
+	return volume_linear
