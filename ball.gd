@@ -171,7 +171,7 @@ func update_trajectory_preview(impulse: Vector2):
 
 	points.append(pos)
 
-	for i in range(150):
+	for i in range(110):
 		var old_pos = pos
 
 		vel *= damp_factor
@@ -190,7 +190,7 @@ func update_trajectory_preview(impulse: Vector2):
 			vel = vel.bounce(normal) * physics_material_override.bounce
 			pos = result.position + normal * 2.0
 
-			if vel.length() < rest_velocity_threshold * 2:
+			if vel.length() < rest_velocity_threshold * 8:
 				break
 
 		points.append(pos)
