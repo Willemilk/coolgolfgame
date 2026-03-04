@@ -21,6 +21,7 @@ var damp_factor: float
 
 var dot_indicator: Line2D
 var power_label: Label
+var traj_gradient: Gradient
 
 
 func _ready():
@@ -29,11 +30,15 @@ func _ready():
 	shot_indicator.width = 2.0
 	shot_indicator.top_level = true
 
+	traj_gradient = Gradient.new()
+	traj_gradient.set_color(0, Color(1, 1, 1, 0.7))
+	traj_gradient.set_color(1, Color(1, 1, 1, 0.0))
+
 	dot_indicator = Line2D.new()
-	dot_indicator.width = 2.0
+	dot_indicator.width = 3.0
 	dot_indicator.top_level = true
 	dot_indicator.visible = false
-	dot_indicator.default_color = Color(1, 1, 1, 0.5)
+	dot_indicator.gradient = traj_gradient
 	dot_indicator.z_index = 10
 	add_child(dot_indicator)
 
@@ -160,7 +165,7 @@ func update_aim():
 
 
 func update_trajectory_preview(impulse: Vector2):
-	var points: PackedVector2Array = []
+	var all_points: PackedVector2Array = []
 	var vel = impulse / mass
 	var pos = global_position
 	var dt = physics_dt
@@ -169,11 +174,10 @@ func update_trajectory_preview(impulse: Vector2):
 	query.exclude = [get_rid()]
 	query.collision_mask = collision_mask
 
-	points.append(pos)
+	all_points.append(pos)
 
 	for i in range(110):
 		var old_pos = pos
-
 		vel *= damp_factor
 		vel += gravity_vector * dt
 		pos += vel * dt
@@ -185,21 +189,33 @@ func update_trajectory_preview(impulse: Vector2):
 		query.to = pos
 		var result = space.intersect_ray(query)
 		if result:
-			points.append(result.position)
+			all_points.append(result.position)
 			var normal = result.normal
 			vel = vel.bounce(normal) * physics_material_override.bounce
 			pos = result.position + normal * 2.0
-
 			if vel.length() < rest_velocity_threshold * 8:
 				break
 
-		points.append(pos)
-
+		all_points.append(pos)
 		if vel.length() < rest_velocity_threshold:
 			break
 
-	dot_indicator.points = points
-	dot_indicator.default_color = shot_indicator.default_color * Color(1, 1, 1, 0.4)
+	var dotted: PackedVector2Array = []
+	var gap_size = 4
+	var dot_size = 3
+	for i in range(all_points.size()):
+		var mod = i % (gap_size + dot_size)
+		if mod < dot_size:
+			dotted.append(all_points[i])
+		else:
+			if dotted.size() > 0:
+				dotted.append(dotted[dotted.size() - 1])
+
+	dot_indicator.points = dotted
+
+	var base_color = shot_indicator.default_color
+	traj_gradient.set_color(0, Color(base_color.r, base_color.g, base_color.b, 0.75))
+	traj_gradient.set_color(1, Color(base_color.r, base_color.g, base_color.b, 0.0))
 
 
 func update_indicator_color(power):
